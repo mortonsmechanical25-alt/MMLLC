@@ -1,0 +1,32 @@
+name: Google integration checks
+on:
+  push:
+    branches: [codex/google-business-controls]
+  pull_request:
+    paths:
+      - 'desk1/private/google*'
+      - 'desk1/desk.mortonsmechanical.com/google*'
+      - 'desk1/desk.mortonsmechanical.com/assets/google*'
+      - 'desk1/desk.mortonsmechanical.com/checks/google.php'
+      - '.github/workflows/google-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax
+        run: |
+          php -v
+          php -l desk1/private/google-lib.php
+          php -l desk1/private/google.example.php
+          php -l desk1/desk.mortonsmechanical.com/google.php
+          php -l desk1/desk.mortonsmechanical.com/google-api.php
+          php -l desk1/desk.mortonsmechanical.com/google-oauth.php
+          php -l desk1/desk.mortonsmechanical.com/index.php
+      - name: Google validation checks
+        run: php desk1/desk.mortonsmechanical.com/checks/google.php
+      - name: Browser script syntax
+        run: node --check desk1/desk.mortonsmechanical.com/assets/google.js
