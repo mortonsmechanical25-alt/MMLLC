@@ -30,3 +30,19 @@ jobs:
         run: php desk1/desk.mortonsmechanical.com/checks/google.php
       - name: Browser script syntax
         run: node --check desk1/desk.mortonsmechanical.com/assets/google.js
+      - name: Package upgrade only
+        run: |
+          mkdir -p upgrade/desk1/desk.mortonsmechanical.com/assets upgrade/desk1/desk.mortonsmechanical.com/checks upgrade/desk1/private
+          for file in index.php google.php google-api.php google-oauth.php GOOGLE_SETUP.md; do
+            cp "desk1/desk.mortonsmechanical.com/$file" "upgrade/desk1/desk.mortonsmechanical.com/$file"
+          done
+          cp desk1/desk.mortonsmechanical.com/assets/google.css desk1/desk.mortonsmechanical.com/assets/google.js upgrade/desk1/desk.mortonsmechanical.com/assets/
+          cp desk1/desk.mortonsmechanical.com/checks/google.php upgrade/desk1/desk.mortonsmechanical.com/checks/
+          cp desk1/private/google-lib.php desk1/private/google.example.php desk1/private/google-schema.sql upgrade/desk1/private/
+          cp desk1/desk.mortonsmechanical.com/GOOGLE_SETUP.md upgrade/START_HERE.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Service-Desk-Google-Update
+          path: upgrade/
+          if-no-files-found: error
+          retention-days: 90
