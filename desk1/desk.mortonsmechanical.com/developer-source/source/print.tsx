@@ -1,0 +1,8 @@
+import React,{useEffect,useState} from 'react';
+import {createRoot} from 'react-dom/client';
+import ServiceDocument from './document';
+function Print(){const [r,setR]=useState<any>(null),[settings,setSettings]=useState<any>(null),[error,setError]=useState(''),[ready,setReady]=useState(false);
+useEffect(()=>{fetch('/api.php?action=records').then(async res=>{const rows=await res.json();if(!res.ok)throw Error(rows.error);const row=rows.find((v:any)=>v.id===new URLSearchParams(location.search).get('id'));if(!row||!['estimate','invoice'].includes(row.kind))throw Error('Document not found');setR(row);setSettings(rows.find((v:any)=>v.kind==='settings')||{business:'Mortons Mechanical LLC',phone:'603-856-5389',area:'New Hampshire'});document.title=row.number+' - Mortons Mechanical';}).catch(e=>setError(e.message));},[]);
+useEffect(()=>{if(!r)return;let active=true;Promise.all(Array.from(document.images).map(img=>img.complete?Promise.resolve():new Promise<void>(resolve=>{img.addEventListener('load',()=>resolve(),{once:true});img.addEventListener('error',()=>resolve(),{once:true});}))).then(()=>{if(active)setReady(true)});return()=>{active=false}},[r]);
+return <div className="print-page"><div className="print-controls no-print"><div><strong>{r?.number||'Document'}</strong><p>Print or Save as PDF. Turn off Headers and footers for a clean document. You can also use Command+P or Ctrl+P.</p></div><button className="primary" disabled={!ready} onClick={()=>window.print()}>Print / Save PDF</button><a className="secondary" href="/">Back to Service Desk</a></div>{error?<p role="alert">{error}</p>:r?<ServiceDocument record={r} settings={settings}/>:<p>Loading…</p>}</div>}
+createRoot(document.getElementById('root')!).render(<Print/>);
