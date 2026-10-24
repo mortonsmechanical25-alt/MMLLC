@@ -2,7 +2,9 @@
 
 This package adds the Site updates page and matches the Google Business page to
 your existing green Service Desk design. Your current database and config.php
-are not included or changed. No SQL import is needed for this update.
+are not included or changed. The latest package also includes Accounts; import
+private/accounts-schema.sql once as described in INSTALL_ACCOUNTS.md. The file
+updater itself needs no database migration.
 
 ## One-time installation in Plesk
 

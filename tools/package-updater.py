@@ -5,14 +5,18 @@ out=root/'artifacts'
 out.mkdir(exist_ok=True)
 files=[
  'desk1/private/bootstrap.php','desk1/private/update-lib.php','desk1/private/tools-layout.php',
+ 'desk1/private/accounts-lib.php','desk1/private/accounts-schema.sql','desk1/private/google-lib.php',
+ 'desk1/desk.mortonsmechanical.com/login.php','desk1/desk.mortonsmechanical.com/accounts.php',
  'desk1/desk.mortonsmechanical.com/index.php','desk1/desk.mortonsmechanical.com/google.php',
  'desk1/desk.mortonsmechanical.com/updates.php',
  'desk1/desk.mortonsmechanical.com/assets/service-tools.css',
  'desk1/desk.mortonsmechanical.com/assets/app.js',
  'desk1/desk.mortonsmechanical.com/assets/update-upload.js',
- 'INSTALL_UPDATER.md']
+ 'INSTALL_UPDATER.md','INSTALL_ACCOUNTS.md']
 with zipfile.ZipFile(out/'Service-Desk-Updater-Install.zip','w',zipfile.ZIP_DEFLATED) as z:
  for f in files:z.write(root/f,f)
+shutil.copy(out/'Service-Desk-Updater-Install.zip',out/'Service-Desk-Accounts-Install.zip')
+shutil.copy(root/'INSTALL_ACCOUNTS.md',out/'INSTALL_ACCOUNTS.md')
 payload=root/'package-payload'
 if payload.exists():shutil.rmtree(payload)
 (payload/'public/assets').mkdir(parents=True)

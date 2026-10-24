@@ -1,5 +1,5 @@
 <?php
-require dirname(__DIR__).'/private/bootstrap.php'; user();
+require dirname(__DIR__).'/private/bootstrap.php'; user(); desk_require_owner();
 require dirname(__DIR__).'/private/tools-layout.php';
 $notice=$_SESSION['gb_notice']??''; unset($_SESSION['gb_notice']);
 desk_tools_start('Google Business Profile','google');

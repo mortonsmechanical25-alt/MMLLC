@@ -24,7 +24,22 @@ if(!isset($_SESSION['csrf']))$_SESSION['csrf']=bin2hex(random_bytes(32));
 function db():PDO {global $cfg;static $pdo;if(!$pdo)$pdo=new PDO($cfg['dsn'],$cfg['db_user'],$cfg['db_password'],[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false]);return $pdo;}
 function h(mixed $s):string{return htmlspecialchars((string)$s,ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
 function jsonout(mixed $data,int $status=200):never{http_response_code($status);header('Content-Type: application/json');echo json_encode($data,JSON_THROW_ON_ERROR);exit;}
-function user(bool $api=false):int{if(empty($_SESSION['user'])||time()-($_SESSION['last']??0)>28800){unset($_SESSION['user']);if($api)jsonout(['error'=>'Sign in required. Refresh the page to log in.'],401);header('Location: /login.php');exit;}$_SESSION['last']=time();return (int)$_SESSION['user'];}
+require __DIR__.'/accounts-lib.php';
+function user(bool $api=false):int{
+ $expired=empty($_SESSION['user'])||time()-($_SESSION['last']??0)>28800;
+ $identity=$expired?null:desk_account_identity(db(),(int)$_SESSION['user']);
+ if(!$identity||!$identity['enabled']||(isset($_SESSION['account_stamp'])&&!hash_equals($identity['stamp'],$_SESSION['account_stamp']))){
+  unset($_SESSION['user'],$_SESSION['account_stamp']);
+  if($api)jsonout(['error'=>'Sign in required. Refresh the page to log in.'],401);
+  header('Location: /login.php');exit;
+ }
+ $_SESSION['account_stamp']=$identity['stamp'];$_SESSION['last']=time();$GLOBALS['desk_current_identity']=$identity;
+ if(!desk_role_allows($identity,$_SERVER['REQUEST_METHOD']??'GET',basename($_SERVER['SCRIPT_FILENAME']??''))){
+  if($api)jsonout(['error'=>'This is a read-only account. Changes are not allowed.'],403);
+  http_response_code(403);exit('This is a read-only account. Changes are not allowed.');
+ }
+ return $identity['workspace'];
+}
 function csrf():void{if(!hash_equals($_SESSION['csrf'],$_SERVER['HTTP_X_CSRF_TOKEN']??$_POST['csrf']??''))throw new InvalidArgumentException('Please refresh the page and try again.');}
 function records(int $owner):array{$q=db()->prepare('SELECT data FROM records WHERE owner=? ORDER BY updated DESC');$q->execute([$owner]);return array_map(fn($x)=>json_decode($x['data'],true,512,JSON_THROW_ON_ERROR),$q->fetchAll(PDO::FETCH_ASSOC));}
 function readrecord(int $owner,string $id,bool $lock=false):?array{$q=db()->prepare('SELECT data FROM records WHERE owner=? AND id=?'.($lock?' FOR UPDATE':''));$q->execute([$owner,$id]);$v=$q->fetchColumn();return $v===false?null:json_decode($v,true,512,JSON_THROW_ON_ERROR);}

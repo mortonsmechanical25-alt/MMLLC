@@ -3,6 +3,7 @@ declare(strict_types=1);
 define('DESK_UPDATER_REQUEST',true);
 require dirname(__DIR__).'/private/bootstrap.php';
 $owner=user();
+desk_require_owner();
 $allowed=$cfg['update_owner_ids']??[1];
 if(!is_array($allowed)||!in_array($owner,$allowed,true)){http_response_code(403);exit('Only the Service Desk owner may install updates.');}
 require dirname(__DIR__).'/private/update-lib.php';

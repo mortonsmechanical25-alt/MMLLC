@@ -9,6 +9,20 @@ permissions:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: fixture-password
+          MYSQL_DATABASE: desk_accounts_test
+        ports: ['33306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -pfixture-password"
+          --health-interval=10s --health-timeout=5s --health-retries=10
+    env:
+      DESK_TEST_DSN: 'mysql:host=127.0.0.1;port=33306;dbname=desk_accounts_test;charset=utf8mb4'
+      DESK_TEST_USER: root
+      DESK_TEST_PASSWORD: fixture-password
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
@@ -22,10 +36,17 @@ jobs:
         run: php desk1/desk.mortonsmechanical.com/checks/google.php
       - name: Updater integrity and recovery checks
         run: php desk1/desk.mortonsmechanical.com/checks/updater.php
+      - name: Account login compatibility
+        run: php desk1/desk.mortonsmechanical.com/checks/accounts.php --legacy
+      - name: Account workspace and session checks
+        run: php desk1/desk.mortonsmechanical.com/checks/accounts.php
+      - name: Real login and account authorization
+        run: python3 tools/check-accounts-http.py
       - name: Browser script syntax
         run: |
           node --check desk1/desk.mortonsmechanical.com/assets/google.js
           node --check desk1/desk.mortonsmechanical.com/assets/update-upload.js
+          node --check desk1/desk.mortonsmechanical.com/assets/app.js
       - name: Package installer and compatible update
         run: python3 tools/package-updater.py
       - uses: actions/upload-artifact@v4

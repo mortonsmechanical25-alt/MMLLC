@@ -12,6 +12,7 @@ function gb_config(): array {
     return $config;
 }
 function gb_allowed(int $owner): void {
+    desk_require_owner(true);
     if (!in_array($owner, gb_config()['allowed_users'] ?? [], true))
         throw new InvalidArgumentException('This Service Desk user is not allowed to manage Google. Ask the owner to configure allowed_users.');
 }
@@ -201,3 +202,4 @@ function gb_summary(mixed $summary): string {
     if (preg_match_all('/./us',$summary)>1500) throw new InvalidArgumentException('Posts may contain at most 1,500 characters.');
     return trim($summary);
 }
+
