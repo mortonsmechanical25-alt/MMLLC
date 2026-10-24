@@ -41,6 +41,8 @@ with tempfile.TemporaryDirectory(prefix='desk-account-http-') as temp:
     try:urllib.request.urlopen(base+'/login.php',timeout=1);break
     except Exception:time.sleep(.1)
    owner,status,page=login('owner@example.test');check(status==200 and 'id="root"' in page,'Owner login works')
+   for attempt in range(11):
+    _,login_status,login_page=login('owner@example.test');check(login_status==200 and 'id="root"' in login_page,'Successful login resets throttling')
    _,page=request(owner,'/accounts.php');owner_csrf=csrf(page)
    status,result=request(owner,'/accounts.php',{'csrf':owner_csrf,'action':'create','email':'reviewer-http@example.test','role':'viewer','new_password':password,'confirm_password':password,'owner_password':password})
    check(status==200 and 'reviewer-http@example.test' in result,'Owner can create read-only login')

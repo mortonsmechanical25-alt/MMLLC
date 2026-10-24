@@ -35,7 +35,7 @@ try {
             $q=db()->prepare('SELECT user_id FROM desk_memberships WHERE user_id=? AND workspace_owner=? FOR UPDATE');$q->execute([$id,$workspace]);
             if(!$q->fetchColumn())throw new InvalidArgumentException('This account does not belong to your workspace.');
             $enabled=($_POST['enabled']??'')==='yes'?1:0;
-            $q=db()->prepare('UPDATE desk_memberships SET role=?,enabled=? WHERE user_id=? AND workspace_owner=?');$q->execute([$role,$enabled,$id,$workspace]);
+            $q=db()->prepare('UPDATE desk_memberships SET role=?,enabled=?,session_version=session_version+1 WHERE user_id=? AND workspace_owner=?');$q->execute([$role,$enabled,$id,$workspace]);
             if($newHash!==null){$q=db()->prepare('UPDATE users SET password_hash=? WHERE id=?');$q->execute([$newHash,$id]);}
             $notice='Account updated. Password, role, or access changes invalidate existing sessions on their next request.';
         }

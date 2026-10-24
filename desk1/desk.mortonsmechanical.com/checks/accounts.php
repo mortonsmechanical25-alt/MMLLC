@@ -40,6 +40,11 @@ $db->exec('UPDATE desk_memberships SET enabled=1 WHERE user_id=3');$old=desk_acc
 $q=$db->prepare('UPDATE users SET password_hash=? WHERE id=3');$q->execute([desk_new_password('Replacement-password-123!')]);
 checkAccount(desk_account_identity($db,3)['stamp']!==$old,'Password reset revokes session stamp');
 $q->execute([$hash]);
+$old=desk_account_identity($db,3)['stamp'];
+$db->exec('UPDATE desk_memberships SET enabled=0,session_version=session_version+1 WHERE user_id=3');
+$db->exec('UPDATE desk_memberships SET enabled=1,session_version=session_version+1 WHERE user_id=3');
+checkAccount(desk_account_identity($db,3)['stamp']!==$old,'Disable followed by reenable still revokes previous sessions');
+
 rejectAccount(fn()=>desk_new_password('short'),'Weak password rejected');
 rejectAccount(fn()=>desk_new_password(str_repeat('x',73)),'Bcrypt truncation rejected');
 rejectAccount(fn()=>desk_new_password("Password-with-null\0character"),'Null byte rejected');

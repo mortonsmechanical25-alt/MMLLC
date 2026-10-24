@@ -9,11 +9,11 @@ function desk_identity_from_row(array $r):array {
     $member=$r['workspace_owner']!==null;
     $identity=['id'=>(int)$r['id'],'email'=>$r['email'],'workspace'=>$member?(int)$r['workspace_owner']:(int)$r['id'],'role'=>$member?$r['role']:'owner','enabled'=>!$member||(int)$r['enabled']===1];
     if(!in_array($identity['role'],['owner','staff','viewer'],true)||$identity['workspace']<1)throw new RuntimeException('Invalid workspace membership.');
-    $identity['stamp']=hash('sha256',$r['password_hash'].'|'.$identity['workspace'].'|'.$identity['role'].'|'.(int)$identity['enabled']);
+    $identity['stamp']=hash('sha256',$r['password_hash'].'|'.$identity['workspace'].'|'.$identity['role'].'|'.(int)$identity['enabled'].'|'.(int)($r['session_version']??0));
     return $identity;
 }
 function desk_account_identity(PDO $pdo,int $id):?array {
-    $sql=desk_accounts_ready($pdo)?'SELECT u.id,u.email,u.password_hash,m.workspace_owner,m.role,m.enabled FROM users u LEFT JOIN desk_memberships m ON m.user_id=u.id WHERE u.id=?':'SELECT id,email,password_hash,NULL AS workspace_owner,NULL AS role,NULL AS enabled FROM users WHERE id=?';
+    $sql=desk_accounts_ready($pdo)?'SELECT u.id,u.email,u.password_hash,m.workspace_owner,m.role,m.enabled,m.session_version FROM users u LEFT JOIN desk_memberships m ON m.user_id=u.id WHERE u.id=?':'SELECT id,email,password_hash,NULL AS workspace_owner,NULL AS role,NULL AS enabled,0 AS session_version FROM users WHERE id=?';
     $q=$pdo->prepare($sql);$q->execute([$id]);$r=$q->fetch(PDO::FETCH_ASSOC);
     return $r?desk_identity_from_row($r):null;
 }
