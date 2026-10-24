@@ -9,7 +9,9 @@ are not included or changed. No SQL import is needed for this update.
 1. Back up the current website files and database.
 2. Upload the CONTENTS of desk1/desk.mortonsmechanical.com/ from this ZIP into
    your existing subdomain document root. Replace the matching files only.
-   Keep your existing app.js, app.css, Google API files, print files and other
+   Replace assets/app.js with the included bundle to add the two new sidebar
+   links and support navigation back to a specific desk section. Keep your
+   existing app.css, Google API files, print files and other
    files. This package does not contain a complete reinstall of the app.
 3. Upload the CONTENTS of desk1/private/ into the private directory beside your
    current config.php, outside the document root. Replace bootstrap.php and add
