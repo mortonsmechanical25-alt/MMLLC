@@ -2,6 +2,18 @@
 declare(strict_types=1);
 $configPath=__DIR__.'/config.php';
 if(!is_file($configPath)){http_response_code(503);exit('Setup required: copy private/config.example.php to private/config.php and configure the database.');}
+// Requests share the update lock so file installation waits for active work.
+// updates.php stays reachable to recover interrupted installations.
+if(PHP_SAPI!=='cli' && !(defined('DESK_UPDATER_REQUEST')&&DESK_UPDATER_REQUEST===true)){
+ $state=__DIR__.'/update-state';
+ if(is_dir($state)){
+  if(is_link($state)||is_link($state.'/lock')){http_response_code(503);exit('Update storage requires attention.');}
+  $deskUpdateLock=fopen($state.'/lock','c');
+  if(!$deskUpdateLock||!flock($deskUpdateLock,LOCK_SH|LOCK_NB)){http_response_code(503);header('Retry-After: 30');exit('Service Desk is installing an update. Please retry shortly.');}
+  register_shutdown_function(static function()use($deskUpdateLock){flock($deskUpdateLock,LOCK_UN);fclose($deskUpdateLock);});
+  if(is_file($state.'/active.json')){http_response_code(503);header('Retry-After: 30');exit('Service Desk update recovery required. The owner can open /updates.php.');}
+ }
+}
 $cfg=require $configPath;
 ini_set('display_errors','0');
 date_default_timezone_set('America/New_York');
@@ -40,4 +52,5 @@ function validate(array $r,int $owner):array{
  return $r;
 }
 function stripe(string $path,array $params=[],?string $idem=null,bool $post=false):array{global $cfg;if(empty($cfg['stripe_key']))throw new InvalidArgumentException('Stripe is not configured.');$c=curl_init('https://api.stripe.com/v1/'.$path);$headers=['Authorization: Bearer '.$cfg['stripe_key'],'Stripe-Version: 2026-08-26.dahlia'];if($idem)$headers[]='Idempotency-Key: '.$idem;curl_setopt_array($c,[CURLOPT_RETURNTRANSFER=>true,CURLOPT_TIMEOUT=>25,CURLOPT_HTTPHEADER=>$headers]);if($params||$post)curl_setopt_array($c,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>http_build_query($params)]);$raw=curl_exec($c);$status=curl_getinfo($c,CURLINFO_RESPONSE_CODE);curl_close($c);if($raw===false||$status>=400)throw new RuntimeException('Stripe request failed. Check the server key and Stripe permissions.');return json_decode($raw,true,512,JSON_THROW_ON_ERROR);}
-require __DIR__.'/workflows.php';
+if(!(defined('DESK_UPDATER_REQUEST')&&DESK_UPDATER_REQUEST===true))require __DIR__.'/workflows.php';
+

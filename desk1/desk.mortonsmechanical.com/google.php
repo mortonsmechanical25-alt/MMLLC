@@ -1,19 +1,12 @@
 <?php
 require dirname(__DIR__).'/private/bootstrap.php'; user();
+require dirname(__DIR__).'/private/tools-layout.php';
 $notice=$_SESSION['gb_notice']??''; unset($_SESSION['gb_notice']);
+desk_tools_start('Google Business Profile','google');
 ?>
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Google Business | Mortons Mechanical</title>
-<link rel="icon" href="/favicon.svg"><link rel="stylesheet" href="/assets/google.css">
-<meta name="csrf-token" content="<?=h($_SESSION['csrf'])?>">
-</head><body>
-<header><a href="/">← Service Desk</a><strong>Mortons Mechanical</strong></header>
-<main>
-<h1>Google Business Profile</h1>
-<p>Manage the posts and hours customers see on Google.</p>
+<p class="page-intro">Manage the posts and hours customers see on Google.</p>
 <div id="notice" role="status" aria-live="polite"><?=h($notice)?></div>
-<section>
+<section class="tool-card">
 <h2>Connection</h2>
 <p id="connection-status">Checking connection…</p>
 <div class="actions">
@@ -30,19 +23,19 @@ $notice=$_SESSION['gb_notice']??''; unset($_SESSION['gb_notice']);
 </div>
 </section>
 <div id="business" hidden>
-<section><h2 id="business-title">Business</h2>
+<section class="tool-card"><h2 id="business-title">Business</h2>
 <p>All times use your business location’s local time.</p>
 <p id="business-status"></p>
 <div class="actions"><button id="temporary" class="danger">Temporarily close business</button><button id="reopen">Reopen business</button></div>
 <p class="muted">Temporary closure remains until you reopen. For one day or a holiday, use Special hours below. Reopening does not remove existing holiday closures.</p>
 </section>
-<section>
+<section class="tool-card">
 <h2>Regular hours</h2>
 <p>Add one row for each opening period. A day with no row is closed. Use multiple rows for split shifts, the next closing day for overnight hours, or 00:00–24:00 on the same day for 24 hours.</p>
 <div class="table-wrap"><table><thead><tr><th>Opens on</th><th>Time</th><th>Closes on</th><th>Time</th><th></th></tr></thead><tbody id="regular-rows"></tbody></table></div>
 <div class="actions"><button id="add-regular" class="secondary">Add opening period</button><button id="save-regular">Save regular hours to Google</button></div>
 </section>
-<section>
+<section class="tool-card">
 <h2>Special hours &amp; one-day closures</h2>
 <p>Change one date at a time. Other dates are preserved.</p>
 <div id="special-list"></div>
@@ -56,7 +49,7 @@ $notice=$_SESSION['gb_notice']??''; unset($_SESSION['gb_notice']);
 <button id="save-special">Save date to Google</button>
 <p class="muted">Existing overnight special hours are displayed and preserved. Adjust those periods directly in Google before changing either affected date here.</p>
 </section>
-<section>
+<section class="tool-card">
 <h2>Posts</h2>
 <p>Edit post text below. Existing pictures, buttons, event details, and offer details stay attached.</p>
 <div id="post-list"></div><button id="more-posts" class="secondary" hidden>Load more posts</button>
@@ -67,4 +60,4 @@ $notice=$_SESSION['gb_notice']??''; unset($_SESSION['gb_notice']);
 </details>
 </section>
 </div>
-</main><script src="/assets/google.js" defer></script></body></html>
+<script src="/assets/google.js" defer></script><?php desk_tools_end(); ?>

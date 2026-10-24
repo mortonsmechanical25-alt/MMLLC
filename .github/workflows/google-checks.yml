@@ -1,14 +1,8 @@
-name: Google integration checks
+name: Service Desk update checks
 on:
   push:
     branches: [codex/google-business-controls]
   pull_request:
-    paths:
-      - 'desk1/private/google*'
-      - 'desk1/desk.mortonsmechanical.com/google*'
-      - 'desk1/desk.mortonsmechanical.com/assets/google*'
-      - 'desk1/desk.mortonsmechanical.com/checks/google.php'
-      - '.github/workflows/google-checks.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,32 +11,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: zip, pdo_mysql
+          coverage: none
       - name: PHP syntax
-        run: |
-          php -v
-          php -l desk1/private/google-lib.php
-          php -l desk1/private/google.example.php
-          php -l desk1/desk.mortonsmechanical.com/google.php
-          php -l desk1/desk.mortonsmechanical.com/google-api.php
-          php -l desk1/desk.mortonsmechanical.com/google-oauth.php
-          php -l desk1/desk.mortonsmechanical.com/index.php
+        run: find desk1 -name '*.php' -print0 | xargs -0 -n 1 php -l
       - name: Google validation checks
         run: php desk1/desk.mortonsmechanical.com/checks/google.php
+      - name: Updater integrity and recovery checks
+        run: php desk1/desk.mortonsmechanical.com/checks/updater.php
       - name: Browser script syntax
-        run: node --check desk1/desk.mortonsmechanical.com/assets/google.js
-      - name: Package upgrade only
         run: |
-          mkdir -p upgrade/desk1/desk.mortonsmechanical.com/assets upgrade/desk1/desk.mortonsmechanical.com/checks upgrade/desk1/private
-          for file in index.php google.php google-api.php google-oauth.php GOOGLE_SETUP.md; do
-            cp "desk1/desk.mortonsmechanical.com/$file" "upgrade/desk1/desk.mortonsmechanical.com/$file"
-          done
-          cp desk1/desk.mortonsmechanical.com/assets/google.css desk1/desk.mortonsmechanical.com/assets/google.js upgrade/desk1/desk.mortonsmechanical.com/assets/
-          cp desk1/desk.mortonsmechanical.com/checks/google.php upgrade/desk1/desk.mortonsmechanical.com/checks/
-          cp desk1/private/google-lib.php desk1/private/google.example.php desk1/private/google-schema.sql upgrade/desk1/private/
-          cp desk1/desk.mortonsmechanical.com/GOOGLE_SETUP.md upgrade/START_HERE.md
+          node --check desk1/desk.mortonsmechanical.com/assets/google.js
+          node --check desk1/desk.mortonsmechanical.com/assets/update-upload.js
+      - name: Package installer and compatible update
+        run: python3 tools/package-updater.py
       - uses: actions/upload-artifact@v4
         with:
-          name: Service-Desk-Google-Update
-          path: upgrade/
+          name: Service-Desk-Updater-Files
+          path: artifacts/
           if-no-files-found: error
           retention-days: 90
